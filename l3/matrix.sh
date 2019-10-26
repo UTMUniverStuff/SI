@@ -42,11 +42,12 @@ fill() {
 	done
 }
 
-fille() {
-	local val=$2
-    echo $val
+fillrand() {
+	local start=$2
+	local end=$3
+	local diff=$((end - start))
 	for subscript in `get_subscripts $1`; do
-		set $1 $subscript `$val`
+		set $1 $subscript $(((RANDOM % diff) + start))
 	done
 }
 
