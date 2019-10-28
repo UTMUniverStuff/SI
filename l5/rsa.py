@@ -12,19 +12,19 @@ def gen_primes(n):
         c += 2
     return primes
 
-def rsa(p, q, sel_candidate=np.random.choice, verbose=True):
+def rsa(p, q, sel_candidate=lambda cs, name: np.random.choice(cs), verbose=True):
     n = p * q
     phi = np.lcm(p - 1, q - 1)
     
-    ks = np.arange(1, phi, 1)
+    ks = np.arange(2, phi, 1)
     ks = np.where(np.gcd(ks, phi) == 1, ks, 0)
     ks = ks[ks != 0]
-    k = sel_candidate(ks)
+    k = sel_candidate(ks, name='k')
     
-    ds = np.arange(1, 100000, 1)
+    ds = np.arange(2, 100000, 1)
     ds = np.where(ds * k % phi == 1, ds, 0)
     ds = ds[ds != 0]
-    d = sel_candidate(ds)
+    d = sel_candidate(ds, name='d')
 
     if verbose: 
         print(f'''
@@ -35,6 +35,20 @@ k={k}
 d={d}
         ''')
     return (int(n), int(k)), (int(n), int(d))
+
+
+def sel_prompt(candidates, name):
+    print(f"Choosing {name}")
+    print(f"Candidates are:\n")
+    print(candidates)
+    i = None
+    while True:
+        i = int(input("Input number from candidates:"))
+        if not i in candidates:
+            print(f"This number is not in candidates")
+        else:
+            break
+    return i
 
 def double_expo(base, exponent, modulo):
     result = 1
@@ -59,9 +73,12 @@ def _crypt(string, modulo, exponent):
 decrypt = encrypt = _crypt
 
 
-to_encrypt = "Very cool string here bruh. Уникод 先輩に気づいて"
+to_encrypt = '''
+Более короткая строка здесь
+Test test test yes man I like me some cookies
+'''
 p, q = get_primes_for_string(to_encrypt)
-public, private = rsa(p, q)
+public, private = rsa(p, q, sel_candidate=sel_prompt)
 
 encrypted = encrypt(to_encrypt, *public)
 decrypted = decrypt(encrypted, *private)
